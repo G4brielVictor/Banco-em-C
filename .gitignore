@@ -1,0 +1,5 @@
+*.exe
+*.txt
+Banco.md
+output
+.vscode/
