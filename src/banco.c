@@ -2,6 +2,8 @@
 #include "banco.h"
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
+#include <windows.h>
 
 //############################ Users #############################################//
 int create_account(Conta *conta, int *totalAccounts, int *num){
@@ -89,18 +91,54 @@ int login_account(Conta *conta, int *totalAccounts){
         }
     }while(test_CPF != 1);
 
+    int index = find_account_by_cpf(search_CPF, conta, totalAccounts);
+
+    if(index == -1){
+        printf("Conta nao encontrada!\n");
+        return -1;
+    }
+
+    printf("Conta encontrada!\n| %s |", conta[index].fullName);
+
     int test_passwd;
     do {
-        printf("Digite a senha do titular: ");
+        int tentativas = 3;
+        printf("Digite a senha para o acesso: ");
         fgets(search_passwd, MAX_PASSWD, stdin);
         search_passwd[strcspn(search_passwd, "\n")] = '\0';
 
-    }
+        test_passwd = strcmp(c[index].passwd, search_passwd);
+
+        if(test_passwd != 0){
+            tentativas--;
+            
+            if(tentativas > 0){
+                printf("Senha incorreta, %d tentativas restantes!\n", tentativas);
+            }
+            else{
+                printf("Numero maximo de tentativas alcançado, encerrando tela de login.\n");
+                return -1;
+            }
+        }
+    }while(test_passwd != 0);
+
+    printf("\tLOGIN REALIZADO COM SUCESSO!\n");
+
+    return index;
 
 }
 
-int find_account_by_cpf(Conta *contas, int *totalAccounts, char *search){
-    
+int find_account_by_cpf(char *search, Conta *contas, int *totalAccounts){
+    if(search[0] == NULL|| search[0] == '\0'){
+        return -1;
+    }
+
+    for(int i = 0; i < totalAccounts; i++){
+        if(strcmp(contas[i].cpf, search) == 0){
+            return i;
+        }
+    } 
+    return -1;
 }
 
 int validate_name(char *name){
@@ -195,3 +233,148 @@ int validate_passwd(char *pass){
     return 1;
 }
 
+void menu_deposit(Conta *user) {
+    float value;
+    
+    while(1) {
+        printf("Valor do deposito: ");
+
+        if(scanf("%f", &value) != 1){
+            printf("Valor invalido, tente novamente\n");
+            while(getchar() != '\n');
+            continue;
+        }
+
+        if(value <= 0){
+            printf("Valor deve ser maior que zero\n");
+            continue;
+        }
+
+        break;
+    }
+
+    int result = deposit(user, value);
+    if(result == 1){
+        printf("Deposito realizado com sucesso!!\n");
+    }
+    else {
+        printf("Erro no deposito.\n");
+    }
+    
+}
+int deposit(Conta *user, float value){
+    if(user == NULL) return -1;
+
+    if(value <= 0) return -2;
+    
+    user->saldo += value;
+    
+    return 1;
+}
+
+void menu_withdrawal(Conta *user){
+    float value;
+
+    while(1){
+        printf("Valor do saque: ");
+
+        if(scanf("%f", &value) != 1){
+            printf("Valor invalido, tente novamente\n");
+            while(getchar() != '\n');
+            continue;
+        }
+
+        if(value <= 0){
+            printf("Valor deve ser maior que zero\n");
+            continue;
+        }
+
+        break;
+    }
+
+    int result = withdrawal(user, value);
+
+    if(result == 1){
+        printf("SAQUE REALIZADO COM SUCESSO\n");
+    }
+    else if(result == -3){
+        printf("Saldo acima do desejado\nValor para retirada: %f\nSeu saldo atual: %f", value, user->saldo);
+    }
+    else {
+        printf("Erro no saque!\n");
+    }
+}
+int withdrawal(Conta *user, float value){
+    if(user == NULL) return -1;
+
+    if(value <= 0) return -2;
+
+    if(value > user->saldo) return -3;
+
+    user->saldo -= value;
+
+    return 1;
+}
+
+void menu_transfer(Conta *user, int *totalAccounts){
+    Conta *u = &user[*totalAccounts];
+
+    char search_CPF[MAX_CPF];
+    int test_cpf;
+    do{
+        printf("Digite o CPF de quem ira receber\nDigite: ");
+        fgets(search_CPF, MAX_CPF, stdin);
+        search_CPF[strcspn(search_CPF, "\n")] = '\0';
+
+        test_cpf = validate_cpf(search_CPF);
+        if(test_cpf != 1){
+            printf("CPF invalido, tente novamente\n");
+        }
+    }while(test_cpf != 1);  
+
+    float value;
+    while(1){
+        printf("Digite o valor da transferencia\nDigite: ");
+
+        if(scanf("%f", &value) != 1){
+            printf("Valor invalido, tente novamente\n");
+            while(getchar() != '\n');
+            continue;
+        }
+
+        if(value <= 0){
+            printf("Valor deve ser maior que zero\n");
+            continue;
+        }
+
+        break;
+    }
+
+
+
+
+}
+int transfer(Conta *user, float value){
+    
+}   
+
+//Others functions
+const char bank_time(){
+    time_t agora = THIStime(NULL);
+    struct tm *t = localtime(&agora);
+
+    int hour = t->tm_hour;
+
+    if(hour >= 6 && hour < 12){
+        printf("Bom dia!");
+    }
+    else if(hour >= 12 && hour < 18){
+        printf("Boa tarde!");
+    }
+    else if(hour >= 18 && hour < 24){
+        printf("Boa noite!");
+    }
+    else {
+        printf("Boa madrugada!");
+    }
+}
