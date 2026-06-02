@@ -4,55 +4,40 @@
 #include <windows.h>
 #include "banco.h"
 
-void menu_user(Conta *contas, int *totalAccounts, int *num){
 
-    int user;
-
-    printf("Ola! Precisamos de algumas informacoes para darmos continuidade!\n\n");
-    do{
-        printf("Novo usuario? 1 - Sim | 2 - Nao\n");
-        while(scanf("%d", &user) != 1){
-            printf("Opcao invalida, digite novamente: ");
-            while(getchar() != '\n');
-        }
-        while(getchar() != '\n');
-
-        if(user != 1 && user != 2) printf("Opcao invalida, digite novamente\n");
-    }while(user != 1 && user != 2);
-
-    if(user == 1) {
-        register_menu(contas, totalAccounts, num);
-    }
-    else {
-        login_menu(contas, totalAccounts);
-    }  
-}
-
-void register_menu(Conta *contas, int *allAccounts, int *num){
+int register_menu(Conta *contas, int *allAccounts, int *num){
     system("cls");
-    printf("============= CADASTRO NOVA CONTA ===============\n");
 
     int validar = create_account(contas, allAccounts, num);
     if(validar == 1){
         printf("\n\tCADASTRO REALIZADO!!\n");
-        login_menu(contas, allAccounts);
+        return validar;
     }
     else{
         printf("\n\tCADASTRO NAO REALIZADO.\n");
     }
+    return 0;
 }
 
-void login_menu(Conta *contas, int *allAccounts){
+void login_menu(Conta *user, Conta *contas, int *allAccounts, int position){
     system("cls");
     printf("================ LOGIN CONTA =================\n");
 
-    int index = login_account(contas, allAccounts);
-
-    if(index == -1){
+    if(user == NULL){
         printf("Falha no login\n");
         return;
     }
-    Conta *user = &contas[index];
+
+    if(position < 0){
+        printf("Falha no login\n");
+        return;
+    }
+
+    if(user->ativo == 0){
+        printf("Conta inativa\n"); 
+        return;
+    }
+
     int op;
     
     do {
@@ -60,13 +45,13 @@ void login_menu(Conta *contas, int *allAccounts){
 
         printf("%s, %s. Bem vindo!\n", bank_time(), user->fullName);
 
-        printf("Escolha uma das opcoes abaixo: ");
-        printf("==========================================\n");
+        printf("Escolha uma das opcoes abaixo\n");
+        printf("==============================\n");
         printf("| 1 - Deposito            |\n");
         printf("| 2 - Saque               |\n");
         printf("| 3 - Transferencia       |\n");
         printf("| 4 - Mostrar dados conta |\n");
-        printf("| 5 - Remover conta       |\n");
+        printf("| 5 - Desabilitar conta   |\n");
         printf("| 0 - Sair                |\n");
 
         while(scanf("%d", &op) != 1){
@@ -76,20 +61,28 @@ void login_menu(Conta *contas, int *allAccounts){
 
         while(getchar() != '\n');
 
-        while(op != 0){
-            switch(op) {
-                case 1: 
-                    menu_deposit(user);
-                    break;
-                case 2: 
-                    menu_withdrawal(user);
-                    break;
-                case 3:
-
-            }
+        switch(op) {
+            case 1: 
+                menu_deposit(user);
+                break;
+            case 2: 
+                menu_withdrawal(user);
+                break;
+            case 3:
+                menu_transfer(user, contas, allAccounts);
+                break;
+            case 4: 
+                menu_date_account(user);
+                break;
+            case 5: 
+                menu_disable_account(user);
+                break;
+            case 0:
+                printf("Retornando ao inicio...");
+                break;
+            default:
+                printf("Erro, tente novamente!\n");
         }
-
-        
     }while(op != 0);
     
 }
